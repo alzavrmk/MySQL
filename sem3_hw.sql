@@ -86,22 +86,23 @@ GROUP BY post;
 -- Выведем требуемую информацию
 SELECT
 	post
-    
 FROM staff
 GROUP BY post
 HAVING AVG(age) <= 30;
 
 -- Внутри каждой должности вывести ТОП-2 по ЗП (2 самых высокооплачиваемых сотрудника по ЗП внутри каждой должности)
-SELECT
-	firstname,
-    lastname,
-	post,
-    salary,
-    age
-FROM staff
-ORDER BY post, salary DESC;
 
--- Очень сложно не могу понять как вывести ТОП - 2 по ЗП
+SELECT
+	*
+FROM (SELECT
+	salary,
+    post,
+    CONCAT(firstname, " ", lastname) AS fullname, 
+    DENSE_RANK() OVER(PARTITION BY post ORDER BY salary DESC) AS `dense_rank`
+FROM staff) rank_salary
+WHERE `dense_rank` IN (1,2);
+
+
 
 
 DROP DATABASE IF EXISTS lesson_4;
@@ -282,13 +283,12 @@ INSERT INTO media (media_type_id, user_id, filename, body) VALUES
 SELECT * FROM media;
 
 -- Посчитать количество документов у каждого пользователя (doc, docx, html)
-SELECT 
-    COUNT (filename)
-FROM media
-ORDER BY filename;
-
-SELECT COUNT(id) AS cnt, 
-(select email from users where id = media.user_id) as user
+SELECT COUNT(id) AS count_docs, 
+	(SELECT 
+		CONCAT(firstname," ", lastname)
+	FROM users 
+	WHERE id = media.user_id
+	) AS us
   FROM media
   GROUP BY user_id;
 
